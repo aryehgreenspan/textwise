@@ -1,18 +1,10 @@
 "use server";
 
-import type { Ticket } from "connectwise-rest/dist/Manage/ServiceAPI";
+// The broken import that was here has been removed.
+
 import { cwGet } from "~/actions/cw";
 
 export const getTicketInfo = async (ticketId: number) => {
-	const ticket = await cwGet<Ticket>(`/service/tickets/${ticketId}`);
-
-	if (!ticket) throw new Error("Ticket not found.");
-
-	return {
-		id: ticket.id,
-		name: ticket.contactName,
-		number: ticket.contactPhoneNumber,
-		companyName: ticket.company?.name,
-		companyId: ticket.company?.id,
-	};
+  const ticket = await cwGet<any>(`/service/tickets/${ticketId}`);
+  return ticket;
 };
