@@ -1,8 +1,7 @@
 "use server";
 
-import { cw, cwGet } from "~/actions/cw";
+import { cwGet, cwPost } from "~/actions/cw";
 
-// Main function that will be called by the webhook
 export const addNoteToTicketByPhoneNumber = async ({
   from,
   body,
@@ -19,9 +18,7 @@ export const addNoteToTicketByPhoneNumber = async ({
   if (!contacts || contacts.length === 0) {
     throw new Error(`No contact found with phone number ${from}`);
   }
-
-  // Use the first contact found
-  const contactId = contacts[0].id;
+  const contactId = contacts[0]!.id;
 
   // 2. Find the most recent open ticket for that contact
   const tickets = await cwGet<any[]>(
@@ -31,17 +28,12 @@ export const addNoteToTicketByPhoneNumber = async ({
   if (!tickets || tickets.length === 0) {
     throw new Error(`No open tickets found for contact ID ${contactId}`);
   }
-
-  // Use the most recent ticket.
   const ticketId = tickets[0]!.id;
-  const ticketSummary = tickets[0]!.summary;
 
-  console.log(`Found ticket #${ticketId} ("${ticketSummary}") for contact ${contactId}`);
-
-  // 3. Add the incoming SMS as a note to that ticket
-  await cw.ServiceTicketNotes.createTicketNote(ticketId, {
+  // 3. Add the incoming SMS as a note using our custom cwPost function
+  await cwPost(`/service/tickets/${ticketId}/notes`, {
     text: `--- Incoming SMS from ${from} ---\n${body}`,
-    detailDescriptionFlag: true, // Makes it an internal note
+    detailDescriptionFlag: true,
     internalAnalysisFlag: false,
     resolutionFlag: false,
   });
