@@ -10,14 +10,20 @@ export const addNoteToTicketByPhoneNumber = async ({
   body: string;
   to: string;
 }) => {
-  // 1. Find the ConnectWise contact by their phone number
-  // The 'from' variable is now URL encoded to handle special characters like '+'
-  const contacts = await cwGet<any[]>(
-    `/company/contacts?conditions=communicationItems/value contains "${encodeURIComponent(from)}"`,
-  );
+  // Let's create a version of the phone number without the country code for testing
+  // e.g., '+15551234567' becomes '5551234567'
+  const plainPhoneNumber = from.startsWith('+1') ? from.substring(2) : from;
+
+  const queryPath = `/company/contacts?conditions=communicationItems/value="${plainPhoneNumber}"`;
+
+  // Log the exact query we are about to send
+  console.log(`Searching for contact with query: ${queryPath}`);
+  
+  // 1. Find the ConnectWise contact by their phone number using an EXACT match
+  const contacts = await cwGet<any[]>(queryPath);
 
   if (!contacts || contacts.length === 0) {
-    throw new Error(`No contact found with phone number ${from}`);
+    throw new Error(`No contact found with phone number ${from} (searched for ${plainPhoneNumber})`);
   }
   const contactId = contacts[0]!.id;
 
