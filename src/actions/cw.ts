@@ -10,7 +10,8 @@ if (
   throw new Error("ConnectWise credentials are not set in environment variables.");
 }
 
-export const cw = new ConnectWise({
+// The fix is here: we use 'new ConnectWise.default'
+export const cw = new (ConnectWise as any).default({
   companyUrl: process.env.CW_COMPANY_URL,
   clientId: process.env.CW_CLIENT_ID,
   privateKey: process.env.CW_PRIVATE_KEY,
@@ -23,7 +24,7 @@ export async function cwGet<T>(path: string): Promise<T> {
 }
 
 // Helper function for POST requests
-export async function cwPost<T>(path: string, body: any): Promise<T> {
+export async function cwPost<T>(path:string, body: any): Promise<T> {
   const response = await cw.api(path, "POST", body);
   return response.data as T;
 }
