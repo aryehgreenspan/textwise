@@ -1,7 +1,6 @@
 "use server";
 
 import { cw, cwGet } from "~/actions/cw";
-import type { Ticket } from "connectwise-rest/dist/Manage/ServiceAPI";
 
 // Main function that will be called by the webhook
 export const addNoteToTicketByPhoneNumber = async ({
@@ -25,7 +24,7 @@ export const addNoteToTicketByPhoneNumber = async ({
   const contactId = contacts[0].id;
 
   // 2. Find the most recent open ticket for that contact
-  const tickets = await cwGet<Ticket[]>(
+  const tickets = await cwGet<any[]>(
     `/service/tickets?conditions=contact/id=${contactId} and closedFlag=false&orderBy=id desc`,
   );
 
@@ -33,7 +32,7 @@ export const addNoteToTicketByPhoneNumber = async ({
     throw new Error(`No open tickets found for contact ID ${contactId}`);
   }
 
-  // Use the most recent ticket. The '!' tells TypeScript this is not undefined.
+  // Use the most recent ticket.
   const ticketId = tickets[0]!.id;
   const ticketSummary = tickets[0]!.summary;
 
