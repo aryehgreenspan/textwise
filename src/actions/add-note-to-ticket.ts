@@ -10,7 +10,7 @@ export const addNoteToTicketByPhoneNumber = async ({
 }: {
   from: string;
   body: string;
-  to: string; // The Twilio number, can be used for logging if needed
+  to: string;
 }) => {
   // 1. Find the ConnectWise contact by their phone number
   const contacts = await cwGet<any[]>(
@@ -33,9 +33,9 @@ export const addNoteToTicketByPhoneNumber = async ({
     throw new Error(`No open tickets found for contact ID ${contactId}`);
   }
 
-  // Use the most recent ticket
-  const ticketId = tickets[0].id;
-  const ticketSummary = tickets[0].summary;
+  // Use the most recent ticket. The '!' tells TypeScript this is not undefined.
+  const ticketId = tickets[0]!.id;
+  const ticketSummary = tickets[0]!.summary;
 
   console.log(`Found ticket #${ticketId} ("${ticketSummary}") for contact ${contactId}`);
 
