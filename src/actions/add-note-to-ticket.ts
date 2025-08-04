@@ -11,8 +11,9 @@ export const addNoteToTicketByPhoneNumber = async ({
   to: string;
 }) => {
   // 1. Find the ConnectWise contact by their phone number
+  // The 'from' variable is now URL encoded to handle special characters like '+'
   const contacts = await cwGet<any[]>(
-    `/company/contacts?conditions=communicationItems/value contains "${from}"`,
+    `/company/contacts?conditions=communicationItems/value contains "${encodeURIComponent(from)}"`,
   );
 
   if (!contacts || contacts.length === 0) {
