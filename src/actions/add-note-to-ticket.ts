@@ -4,28 +4,32 @@ import { cwGet, cwPost } from "~/actions/cw";
 
 export const addNoteToTicketByPhoneNumber = async ({
   from,
-  body,
+body,
 }: {
   from: string;
   body: string;
   to: string;
 }) => {
-  // Let's create a version of the phone number without the country code for testing
-  // e.g., '+15551234567' becomes '5551234567'
-  const plainPhoneNumber = from.startsWith('+1') ? from.substring(2) : from;
+  // Use the full E.164 number for the search
+  const queryPath = `/company/communicationItems?conditions=value="${encodeURIComponent(from)}"`;
 
-  const queryPath = `/company/contacts?conditions=communicationItems/value="${plainPhoneNumber}"`;
+  console.log(`Searching for communication item with query: ${queryPath}`);
 
-  // Log the exact query we are about to send
-  console.log(`Searching for contact with query: ${queryPath}`);
-  
-  // 1. Find the ConnectWise contact by their phone number using an EXACT match
-  const contacts = await cwGet<any[]>(queryPath);
+  // 1. Find the communication item matching the phone number
+  const commItems = await cwGet<any[]>(queryPath);
 
-  if (!contacts || contacts.length === 0) {
-    throw new Error(`No contact found with phone number ${from} (searched for ${plainPhoneNumber})`);
+  if (!commItems || commItems.length === 0) {
+    throw new Error(`No communication item found for phone number ${from}`);
   }
-  const contactId = contacts[0]!.id;
+
+  // Get the contact ID from the communication item we found
+  const contactId = commItems[0]?.contact?.id;
+
+  if (!contactId) {
+    throw new Error(`Communication item found, but it is not linked to a contact.`);
+  }
+
+  console.log(`Found contact ID: ${contactId} from communication item.`);
 
   // 2. Find the most recent open ticket for that contact
   const tickets = await cwGet<any[]>(
@@ -37,7 +41,7 @@ export const addNoteToTicketByPhoneNumber = async ({
   }
   const ticketId = tickets[0]!.id;
 
-  // 3. Add the incoming SMS as a note using our custom cwPost function
+  // 3. Add the incoming SMS as a note
   await cwPost(`/service/tickets/${ticketId}/notes`, {
     text: `--- Incoming SMS from ${from} ---\n${body}`,
     detailDescriptionFlag: true,
