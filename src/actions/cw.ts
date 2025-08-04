@@ -1,6 +1,6 @@
 "use server";
 
-import { ConnectWise } from "connectwise-rest";
+import ConnectWise from "connectwise-rest";
 
 if (
   !process.env.CW_COMPANY_URL ||
